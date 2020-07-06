@@ -2,6 +2,8 @@
 
 Pour commencer, regarder la page `Insight > Network` permet de se faire une bonne idée de l'état actuel de l'espace de travail.
 
+![Network](docs/network_git.png)
+
 ## Régler les conflit
 
 ### La terre le vent et le feu
@@ -30,9 +32,64 @@ Sauf que le partage des tâches n'a pas été bien fait. Résultat ils se sont t
   1. Rappatrier la branche en local PUIS récupérer les changements `git merge origin/henriette`
 
 </details>
+<details>
+<summary>Pour régler les conflits</summary>
+
+Si vous avez ce style de message : 
+
+```
+Fusion automatique de playlist.md
+CONFLIT (contenu) : Conflit de fusion dans playlist.md
+La fusion automatique a échoué ; réglez les conflits et validez le résultat.
+```
+
+C'est que vous avez un conflit à régler, en gros la branche où vous êtes actuellement et la branche que vous tentez de merger, on fait une modification au même endroit sur le même fichier. Git ne sachant pas laquelle des 2 modification il faut garder, il vous demande donc de choisir.
+
+Si on fait un git status, on a l'inventaire de ce qui a été modifié des 2 cotés
+
+```
+Vous avez des chemins non fusionnés.
+  (réglez les conflits puis lancez "git commit")
+  (utilisez "git merge --abort" pour annuler la fusion)
+
+Chemins non fusionnés :
+  (utilisez "git add <fichier>..." pour marquer comme résolu)
+
+        modifié des deux côtés :  playlist.md
+
+aucune modification n'a été ajoutée à la validation (utilisez "git add" ou "git commit -a")
+```
+
+Ici on voit `modifié des deux côtés :  playlist.md` , il faut donc aller voir ce fichier et la on s'appercoit de ceci : 
+
+![Network](docs/conflict_resolving.png)
+
+On s'appercoit que la branche précédemment mergée ( celle d'henriette ) avait dit que `Earth, Wind & Fire - September` était du Disco, et on voit que Michel a mis la même chanson mais en disant que c'était du Funk.
+
+Un choix s'offre à nous, sachant que `Earth, Wind & Fire - September` c'est clairement pas du disco, on va garder la version de Michou ! Du coups on modifie le fichier : 
+
+```
+<<<<<<< HEAD
+|[Earth, Wind & Fire - September](https://www.youtube.com/watch?v=Gs069dndIYk)| Disco |
+=======
+|[Earth, Wind & Fire - September](https://www.youtube.com/watch?v=Gs069dndIYk)| Funk |
+>>>>>>> michel
+```
+Devient alors :
+```
+|[Earth, Wind & Fire - September](https://www.youtube.com/watch?v=Gs069dndIYk)| Funk |
+```
+
+On supprime les caractères chelou, ainsi que la version qui ne nous intéresse pas.
+
+Puis on fait un `git add .` pour suivre la modification de résolution de conflit, on commit `git commit -m "Merge de michel dans master"` et enfin on peut push si on le veut `git push origin master`
+
+</details>
 
 
 ## Rebase une branche
+
+![Network](docs/gitrebase.gif)
 
 ### Cacher la poussière sous le tapis
 
@@ -54,12 +111,36 @@ C'est très pratique pour travailler en "step by step", et pouvoir quand même p
 #### Et on fait comment ?
 
 1. D'abord identifier le commit _qui précède_ notre premier commit de travail. Copier son id.  
-`<TODO : insert screenshot>`
+
+Pour le visualiser : 
+![Commit find id](docs/commit_find_id.png)
+
+Pour être sûr : 
+
+![Git log](docs/git_log.png)
+
 2. Taper `git rebase -i id_du_commit_copié`.
-3. Dans l'éditeur qui s'ouvre (nano, vm, ...), laisser `pick` pour le premier commit de la liste et remplacer le reste par `squash`. Sauver + quitter  
-`<Todo: screenshot + erreurs communes>`
+   ex : `git rebase -i 81b6f96fc87380b80582559cff08ca648f92c5cd`
+3. Dans l'éditeur qui s'ouvre (nano, vm, ...)
+
+![Git rebase -i](docs/gitrebase-i.png)
+
+Laisser `pick` pour le premier commit de la liste et remplacer le reste par `squash`. Sauver + quitter  
+
+Si vous avez une erreur du style : 
+```
+error: 'squash' impossible avec le commit précédent
+Vous pouvez corriger ceci avec 'git rebase --edit-todo' puis lancez 'git rebase --continue'.
+Ou vous pouvez abandonner le rebasage avec 'git rebase --abort'.
+```
+C'est que vous vous êtes trompé en mettant par exemple squash sur le premier commit.
+Pour corriger éxecutez la commande : `git rebase --edit-todo`, modifiez et une fois le problème réglé, éxecutez la commande : `git rebase --continue`
+
 4. Dans le 2ème éditeur, on choisit le commentaire du nouveau "méga-commit". Normalement il est déjà constitué d'un assemblage des commentaires des "petits commits" (pratique !). Sauver + quitter  
+
 5. `git log` pour vérifier. :tada:
+
+![Git rebase log](docs/gitrebaselog.png)
 
 #### Et pour push ?
 
